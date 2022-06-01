@@ -1,0 +1,512 @@
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+p
+}
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+sample$date <- sample$data
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+p
+ERM_markov <- function(train,k){
+#ERM hypothesis
+tab <- table(factor(substr(train$x,1,k)),train$y)
+hhat <- data.frame("x" = rownames(tab),"hx" = unlist(apply(as.matrix(tab),1,function(x) ifelse(min(x) != max(x),
+c(0,1)[x == max(x)],
+"Tie"))))
+#Function to predict
+pred <- function(x){
+x <- substr(x,1,k)
+hx <- hhat$hx[hhat$x == x]
+if(length(x) == 0)
+hx <- sample(x = c("0","1"),1)
+else if(hx == "Tie")
+hx <- sample(x = c("0","1"),1)
+return(hx)
+}
+return(list("hhat" = hhat,"predict" = pred))
+}
+#Lerning whole sample
+sample <- rbind.data.frame(train,val)
+#Lerning whole sample
+sample <- rbind.data.frame(test)
+a2 <- ERM_markov(train = sample,k = 2)
+a3 <- ERM_markov(train = sample,k = 3)
+a4 <- ERM_markov(train = sample,k = 4)
+a0 <- res
+predict <- list(a0$predict,a2$predict,a3$predict,a4$predict)
+names <- c("LS","M2","M3","M4")
+sample$date <- sample$data
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+result
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+p
+}
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+sample$variation <- sample$variacao
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+p
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+}
+return("sample" = sample,"result" = results,"plot" = ifelse(simulate,p,NULL))
+}
+error_models(sample,predict,names,simulate = T,init_value = 1000)
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+}
+return(list("sample" = sample,"result" = results,"plot" = ifelse(simulate,p,NULL)))
+}
+error_models(sample,predict,names,simulate = T,init_value = 1000)
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+}
+return(list("sample" = sample,"result" = result,"plot" = ifelse(simulate,p,NULL)))
+}
+error_models(sample,predict,names,simulate = T,init_value = 1000)
+e <- error_models(sample,predict,names,simulate = T,init_value = 1000)
+e$plot
+p
+e$result
+e$sample
+#Predict on test
+test$pred <- NA
+e$plot
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + geom_line()
+}
+else
+p <- NULL
+return(list("sample" = sample,"result" = result,"plot" = p))
+}
+e <- error_models(sample,predict,names,simulate = T,init_value = 1000)
+e$plot
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+#Tema para os gráficos
+titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,
+color = "black"), axis.title = element_text(size = 14), legend.text = element_text(size = 14),
+legend.title = element_text(size = 14), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), panel.border = element_blank(),
+panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+legend.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+legend.position="bottom",legend.spacing.x = unit(0.5, 'cm'))
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + titles + geom_line() + xlab("Date") + ylab("Simulated value")
+}
+else
+p <- NULL
+return(list("sample" = sample,"result" = result,"plot" = p))
+}
+e <- error_models(sample,predict,names,simulate = T,init_value = 1000)
+e$plot
+error_models <- function(sample,predict,names,simulate = F,init_value = 1000){
+#Tema para os gráficos
+titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,
+color = "black"), axis.title = element_text(size = 14), legend.text = element_text(size = 14),
+legend.title = element_text(size = 14), panel.grid.major = element_blank(),
+panel.grid.minor = element_blank(), panel.border = element_blank(),
+panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+legend.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+legend.position="bottom",legend.spacing.x = unit(0.5, 'cm'))
+result <- NULL
+for(i in 1:length(predict)){
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]] <- NA
+for(j in 1:nrow(sample))
+sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j] <- predict[[i]](sample$x[j])
+#Error
+e <- sum(sample$y != sample[[gsub(pattern = " ",replacement = "",x = names[i])]])/nrow(sample)
+if(is.null(result))
+result <- data.frame("Model" = names[i],"Error" = e)
+else
+result <- rbind.data.frame(result,data.frame("Model" = names[i],"Error" = e))
+}
+#Simulate
+if(simulate){
+for(i in 1:length(predict)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][1] <- init_value
+for(j in 1:nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]*(1 +
+as.numeric(sample[[gsub(pattern = " ",replacement = "",x = names[i])]][j])*sample$variation[j])
+if(j < nrow(sample)){
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j+1] <-
+sample[[paste("sim_",gsub(pattern = " ",replacement = "",x = names[i]),sep = "")]][j]
+}
+}
+}
+#Obseverd
+sample$sim_Observed[1] <- init_value
+for(j in 1:nrow(sample)){
+sample$sim_Observed[j] <- sample$sim_Observed[j]*(1 + as.numeric(sample$y[j])*sample$variation[j])
+if(j < nrow(sample)){
+sample$sim_Observed[j+1] <- sample$sim_Observed[j]
+}
+}
+#Plot
+tmp <- sample %>% select(date,paste("sim_",gsub(pattern = " ",replacement = "",x = names),sep = ""),"sim_Observed") %>% gather("Model","value",-date)
+tmp$Model <- factor(gsub(pattern = "sim_",replacement = "",x = tmp$Model),c("Observed",names))
+p <- ggplot(tmp,aes(x = date,y = value,group = Model,color = Model)) + theme_linedraw() + titles + geom_line() + xlab("Date") + ylab("Simulated value")
+}
+else{
+tmp <- NULL
+p <- NULL
+}
+return(list("sample" = sample,"result" = result,"plot" = p,"data_plot" = tmp))
+}
+e <- error_models(sample,predict,names,simulate = T,init_value = 1000)
+e$plot
+e$data_plot
+library(devtools)
+document()
+setwd("~/GDrive/Doutorado/Códigos/MarkovLS")
+document()
+document()
+document()
+document()
+document()
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+init <- 2
+#First node
+node <- expand.grid(replicate(init, 0:1, simplify = FALSE))
+node
+#First node
+node <- apply(expand.grid(replicate(init, 0:1, simplify = FALSE)),1,function(x) paste(x,collapse = ""))
+node
+#First node
+node <- as.list(apply(expand.grid(replicate(init, 0:1, simplify = FALSE)),1,function(x) paste(x,collapse = "")))
+node
+init <- 10
+as.list(apply(expand.grid(replicate(init, 0:1, simplify = FALSE)),1,function(x) paste(x,collapse = "")))
+#Current error
+current_error <- 1
+current_node <- NULL
+initi <- 1
+#First node
+node <- as.list(apply(expand.grid(replicate(init, 0:1, simplify = FALSE)),1,function(x) paste(x,collapse = "")))
+error <- get_error_node(tab_train,tab_val,node,nrow(val))
+reps <- 0
+library(MarkovLS)
+library(devtools)
+document()
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+document()
+library(MarkovLS)
+init <- 5
+#First node
+node <- as.list(apply(expand.grid(replicate(init, 0:1, simplify = FALSE)),1,function(x) paste(x,collapse = "")))
+node
+#Frequency tables
+tab_train <- as.matrix(table(train$x,train$y))
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)
+library(MarkovLS)

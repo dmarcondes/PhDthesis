@@ -1,0 +1,512 @@
+restart
+apply(rbind(restart),2,getPartition)
+lapply(apply(rbind(restart),2,getPartition),function(x) lapply(x,length))
+lapply(apply(rbind(restart),2,getPartition),function(x) lapply(x,function(x) numbers::bell(length(x))))
+lapply(apply(rbind(restart),2,getPartition),function(x) prod(lapply(x,function(x) numbers::bell(length(x)))))
+lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x))))))
+remain <- sum(lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x)))))))
+lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x))))))
+remain <- sum(unlist(lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x))))))))
+remain
+remain/numbers::bell(n)
+stop = 0.1
+#Get sample info
+X <- unique(c(as.character(xtrain),as.character(xval)))
+X <- X[order(X)]
+#if(length(X) > 20)
+#  stop("Sorry, but this algorithm is not scalable! It works only for at most 20 points on X domain.")
+xtrain <- factor(xtrain,X)
+xval <- factor(xval,X)
+Y <- unique(c(as.character(ytrain),as.character(yval)))
+Y <- Y[order(Y)]
+if(length(Y) != 2)
+stop("The algorithm only work for binary classification problems.")
+ytrain <- factor(ytrain,Y)
+yval <- factor(yval,Y)
+#Delete file with visited nodes
+suppressWarnings(system("rm visited.dat"))
+#Get parameters
+n <- length(X)
+search <- 1
+jtrain <- jointDistribution(xtrain,ytrain)
+jval <- jointDistribution(xval,yval)
+part <- makePartition(list(1:n))
+errorPart <- getError(part,jtrain,jval)
+addNode(part,errorPart)
+restart <- c(findNeighbors(part))#,findNeighbors(makePartition(as.list(c(1:n)))))
+strongMinimums <- vector()
+fail <- 0
+while(search){
+minPart <- plyr::alply(rbind(strongMinimums),2,getPartition)
+if(sum(unlist(lapply(minPart,function(x) is.related(x,part)))) > 0)
+part <- getPartition(sample(restart,1))
+#Calculate error
+errorPart <- getError(part,jtrain,jval)
+#Save as visited node
+addNode(part,errorPart)
+#Get neighbours
+N <- findNeighbors(part)
+#Verbose of new step
+if(verbose){
+cat("\n")
+cat(paste("At node",namePartition(part),"with error",round(errorPart,5),"and",length(N),"neighbors"))
+cat("\n")
+}
+#Error of neighboors
+err <- unlist(plyr::alply(rbind(N),2,function(x) getError(getPartition(x),jtrain,jval)))
+if(errorPart <= min(err)){
+if(verbose){
+cat("This node is a Strong Local Minimum!! Storing it and starting algorithm again...")
+cat("\n")
+}
+#Store node as Strong Local Minimum
+strongMinimums <- c(strongMinimums,namePartition(part))
+#Find a new node at second floor to restart algorithm
+restart <- restart[!unlist(lapply(plyr::alply(rbind(restart),2,getPartition),function(x) is.related(x,part)))]
+remain <- sum(unlist(lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x))))))))
+if(remain/numbers::bell(n) < stop){
+search <- 0
+cat("Remaining less than the desired nodes. Finishing...")
+}
+if(length(N[err == errorPart]) > 0)
+part <- getPartition(sample(N[err == errorPart],1))
+else if(length(restart) > 0){
+#Choose a new node to restart
+part <- getPartition(restart[sample(1:length(restart),1)])
+}
+else{
+#If all the second floor is related to a Strong Local Minimum we are done
+search <- 0
+if(verbose){
+cat("All Strong Local Minimum have been found!! Finishing algorithm...")
+}
+}
+}
+else{
+N1 <-  N[err <= errorPart]
+if(length(strongMinimums) > 0){
+#Get partition of all Strong Local Minimums found so far
+minPart <- plyr::alply(rbind(strongMinimums),2,getPartition)
+#Only neighboors not related to SLM
+r <- unlist(plyr::alply(rbind(N1),2,function(y) sum(unlist(lapply(minPart,function(x) is.related(x,y)))) == 0))
+}
+else
+r <- rep(TRUE,length(N1))
+N1 <- N1[r]
+if(length(N1) > 0){
+if(verbose){
+cat("Found a neighbor with lesser loss. Restarting from it..")
+cat("\n")
+}
+#Neighbor is the new node
+part <- getPartition(sample(N1,1))
+}
+else{
+#When the neighboor with less loss is related to a Strong Local Minimum
+if(verbose){
+cat("All neighboors with lesser loss are associated to a Strong Local Minimum. Restarting...")
+cat("\n")
+}
+part <- getPartition(restart[sample(1:length(restart),1)])
+}
+}
+}
+#Get sample info
+X <- unique(c(as.character(xtrain),as.character(xval)))
+X <- X[order(X)]
+#if(length(X) > 20)
+#  stop("Sorry, but this algorithm is not scalable! It works only for at most 20 points on X domain.")
+xtrain <- factor(xtrain,X)
+xval <- factor(xval,X)
+Y <- unique(c(as.character(ytrain),as.character(yval)))
+Y <- Y[order(Y)]
+if(length(Y) != 2)
+stop("The algorithm only work for binary classification problems.")
+ytrain <- factor(ytrain,Y)
+yval <- factor(yval,Y)
+#Delete file with visited nodes
+suppressWarnings(system("rm visited.dat"))
+#Get parameters
+n <- length(X)
+search <- 1
+jtrain <- jointDistribution(xtrain,ytrain)
+jval <- jointDistribution(xval,yval)
+part <- makePartition(list(1:n))
+errorPart <- getError(part,jtrain,jval)
+addNode(part,errorPart)
+restart <- c(findNeighbors(part))#,findNeighbors(makePartition(as.list(c(1:n)))))
+strongMinimums <- vector()
+fail <- 0
+while(search){
+minPart <- plyr::alply(rbind(strongMinimums),2,getPartition)
+if(sum(unlist(lapply(minPart,function(x) is.related(x,part)))) > 0)
+part <- getPartition(sample(restart,1))
+#Calculate error
+errorPart <- getError(part,jtrain,jval)
+#Save as visited node
+addNode(part,errorPart)
+#Get neighbours
+N <- findNeighbors(part)
+#Verbose of new step
+if(verbose){
+cat("\n")
+cat(paste("At node",namePartition(part),"with error",round(errorPart,5),"and",length(N),"neighbors"))
+cat("\n")
+}
+#Error of neighboors
+err <- unlist(plyr::alply(rbind(N),2,function(x) getError(getPartition(x),jtrain,jval)))
+if(errorPart <= min(err)){
+if(verbose){
+cat("This node is a Strong Local Minimum!! Storing it and starting algorithm again...")
+cat("\n")
+}
+#Store node as Strong Local Minimum
+strongMinimums <- c(strongMinimums,namePartition(part))
+#Find a new node at second floor to restart algorithm
+restart <- restart[!unlist(lapply(plyr::alply(rbind(restart),2,getPartition),function(x) is.related(x,part)))]
+remain <- sum(unlist(lapply(apply(rbind(restart),2,getPartition),function(x) prod(unlist(lapply(x,function(x) numbers::bell(length(x))))))))
+print(paste(length(unique(strongMinimums)),"-",length(restart),"-",
+round(100*remain/numbers::bell(n),2)))
+if(remain/numbers::bell(n) < stop){
+search <- 0
+cat("Remaining less than the desired nodes. Finishing...")
+}
+if(length(N[err == errorPart]) > 0)
+part <- getPartition(sample(N[err == errorPart],1))
+else if(length(restart) > 0){
+#Choose a new node to restart
+part <- getPartition(restart[sample(1:length(restart),1)])
+}
+else{
+#If all the second floor is related to a Strong Local Minimum we are done
+search <- 0
+if(verbose){
+cat("All Strong Local Minimum have been found!! Finishing algorithm...")
+}
+}
+}
+else{
+N1 <-  N[err <= errorPart]
+if(length(strongMinimums) > 0){
+#Get partition of all Strong Local Minimums found so far
+minPart <- plyr::alply(rbind(strongMinimums),2,getPartition)
+#Only neighboors not related to SLM
+r <- unlist(plyr::alply(rbind(N1),2,function(y) sum(unlist(lapply(minPart,function(x) is.related(x,y)))) == 0))
+}
+else
+r <- rep(TRUE,length(N1))
+N1 <- N1[r]
+if(length(N1) > 0){
+if(verbose){
+cat("Found a neighbor with lesser loss. Restarting from it..")
+cat("\n")
+}
+#Neighbor is the new node
+part <- getPartition(sample(N1,1))
+}
+else{
+#When the neighboor with less loss is related to a Strong Local Minimum
+if(verbose){
+cat("All neighboors with lesser loss are associated to a Strong Local Minimum. Restarting...")
+cat("\n")
+}
+part <- getPartition(restart[sample(1:length(restart),1)])
+}
+}
+}
+library(partitionUcurve)
+#####Example 1 of Voting#####
+library(tidyverse)
+library(plyr)
+library(partitionUcurve)
+minError <- function(h,xtest,ytest){
+yobs <- vector()
+for(i in 1:length(xtest)){
+if(length(as.character(h$fx)[h$X == xtest[i]]) > 0){
+yobs[i] <- as.character(h$fx)[h$X == xtest[i]]
+}
+else{
+yobs[i] <- unique(yobs)[unique(yobs) != ytest[i]]
+}
+}
+e <- sum(yobs != ytest)/length(ytest)
+return(e)
+}
+set.seed(1)
+visited <- vector()
+nsolutions <- vector()
+teste_error <- vector()
+fail <- vector()
+for(i in 1:100){
+data <- read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data",
+sep = ",")
+names(data) <- c("class","handicapped-infants","water-project-cost-sharing","adoption-of-the-budget-resolution",
+"physician-fee-freeze","el-salvador-aid","religious-groups-in-schools:","anti-satellite-test-ban",
+"aid-to-nicaraguan-contras","mx-missile","immigration","synfuels-corporation-cutback","education-spending",
+"superfund-right-to-sue","crime","duty-free-exports","export-administration-act-south-africa")
+for(j in 1:ncol(data)){
+data[data[,j] == "?",j] <- "n"
+data[,j] <- factor(data[,j])
+}
+cat(i)
+cat("\n")
+train <- sample(1:nrow(data),391,F)
+f <- apply(data[train[1:348],-1],2,function(x) fisher.test(x,data$class[train[1:348]])$estimate)
+f <- f[order(f,decreasing = T)]
+data <- data[names(data) %in% c("class",names(f)[1:3])]
+data$x <- apply(data[,-1],1,function(x) paste(x,collapse = ""))
+data$y <- data$class
+data <- data %>% dplyr::select(x,y)
+xtrain <- data$x[train[1:348]]
+ytrain <- data$y[train[1:348]]
+xval <- data$x[train[349:391]]
+yval <- data$y[train[349:391]]
+xtest <- data$x[!(c(1:nrow(data)) %in% train)]
+ytest <- data$y[!(c(1:nrow(data)) %in% train)]
+u <- ucurve(xtrain,ytrain,xval,yval)
+e <- min(unlist(lapply(u$hypotheses,function(x) minError(h = x,xtest = xtest,ytest = ytest))))
+visited[i] <- u$visited
+nsolutions[i] <- length(unique(u$hypotheses))
+teste_error[i] <- e
+fail[i] <- u$fail
+}
+visited <- as.numeric(unlist(lapply(strsplit(visited," "),function(x) x[1])))
+tab <- data.frame("visited" = paste(round(100*median(visited)/numbers::bell(8),2),"% (",
+round(100*quantile(visited,0.025)/numbers::bell(8),2),",",
+round(100*quantile(visited,0.975)/numbers::bell(8),2),")",sep = ""),
+"number solutions" = paste(median(nsolutions)," (",
+quantile(nsolutions,0.025),",",
+quantile(nsolutions,0.975),")",sep = ""),
+"test error" = paste(round(median(teste_error),5)," (",
+round(quantile(teste_error,0.025),5),",",
+round(quantile(teste_error,0.975),5),")",sep = ""),
+"fail" = round(100*mean(fail),2))
+write.table(tab,"t1.txt")
+library(partitionUcurve)
+#####Example 1 of Voting#####
+library(tidyverse)
+library(plyr)
+library(partitionUcurve)
+minError <- function(h,xtest,ytest){
+yobs <- vector()
+for(i in 1:length(xtest)){
+if(length(as.character(h$fx)[h$X == xtest[i]]) > 0){
+yobs[i] <- as.character(h$fx)[h$X == xtest[i]]
+}
+else{
+yobs[i] <- unique(yobs)[unique(yobs) != ytest[i]]
+}
+}
+e <- sum(yobs != ytest)/length(ytest)
+return(e)
+}
+set.seed(1)
+visited <- vector()
+nsolutions <- vector()
+teste_error <- vector()
+fail <- vector()
+for(i in 1:100){
+data <- read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data",
+sep = ",")
+names(data) <- c("class","handicapped-infants","water-project-cost-sharing","adoption-of-the-budget-resolution",
+"physician-fee-freeze","el-salvador-aid","religious-groups-in-schools:","anti-satellite-test-ban",
+"aid-to-nicaraguan-contras","mx-missile","immigration","synfuels-corporation-cutback","education-spending",
+"superfund-right-to-sue","crime","duty-free-exports","export-administration-act-south-africa")
+for(j in 1:ncol(data)){
+data[data[,j] == "?",j] <- "n"
+data[,j] <- factor(data[,j])
+}
+cat(i)
+cat("\n")
+train <- sample(1:nrow(data),391,F)
+f <- apply(data[train[1:348],-1],2,function(x) fisher.test(x,data$class[train[1:348]])$estimate)
+f <- f[order(f,decreasing = T)]
+data <- data[names(data) %in% c("class",names(f)[1:3])]
+data$x <- apply(data[,-1],1,function(x) paste(x,collapse = ""))
+data$y <- data$class
+data <- data %>% dplyr::select(x,y)
+xtrain <- data$x[train[1:348]]
+ytrain <- data$y[train[1:348]]
+xval <- data$x[train[349:391]]
+yval <- data$y[train[349:391]]
+xtest <- data$x[!(c(1:nrow(data)) %in% train)]
+ytest <- data$y[!(c(1:nrow(data)) %in% train)]
+u <- ucurve(xtrain,ytrain,xval,yval)
+e <- min(unlist(lapply(u$hypotheses,function(x) minError(h = x,xtest = xtest,ytest = ytest))))
+visited[i] <- u$visited
+nsolutions[i] <- length(unique(u$hypotheses))
+teste_error[i] <- e
+fail[i] <- u$fail
+}
+visited <- as.numeric(unlist(lapply(strsplit(visited," "),function(x) x[1])))
+tab <- data.frame("visited" = paste(round(100*median(visited)/numbers::bell(8),2),"% (",
+round(100*quantile(visited,0.025)/numbers::bell(8),2),",",
+round(100*quantile(visited,0.975)/numbers::bell(8),2),")",sep = ""),
+"number solutions" = paste(median(nsolutions)," (",
+quantile(nsolutions,0.025),",",
+quantile(nsolutions,0.975),")",sep = ""),
+"test error" = paste(round(median(teste_error),5)," (",
+round(quantile(teste_error,0.025),5),",",
+round(quantile(teste_error,0.975),5),")",sep = ""),
+"fail" = round(100*mean(fail),2))
+write.table(tab,"t1.txt")
+#####Example 1 of Voting#####
+library(tidyverse)
+library(plyr)
+library(partitionUcurve)
+minError <- function(h,xtest,ytest){
+yobs <- vector()
+for(i in 1:length(xtest)){
+if(length(as.character(h$fx)[h$X == xtest[i]]) > 0){
+yobs[i] <- as.character(h$fx)[h$X == xtest[i]]
+}
+else{
+yobs[i] <- unique(yobs)[unique(yobs) != ytest[i]]
+}
+}
+e <- sum(yobs != ytest)/length(ytest)
+return(e)
+}
+set.seed(1)
+visited <- vector()
+nsolutions <- vector()
+teste_error <- vector()
+fail <- vector()
+for(i in 1:100){
+data <- read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data",
+sep = ",")
+names(data) <- c("class","handicapped-infants","water-project-cost-sharing","adoption-of-the-budget-resolution",
+"physician-fee-freeze","el-salvador-aid","religious-groups-in-schools:","anti-satellite-test-ban",
+"aid-to-nicaraguan-contras","mx-missile","immigration","synfuels-corporation-cutback","education-spending",
+"superfund-right-to-sue","crime","duty-free-exports","export-administration-act-south-africa")
+for(j in 1:ncol(data)){
+data[data[,j] == "?",j] <- "n"
+data[,j] <- factor(data[,j])
+}
+cat(i)
+cat("\n")
+train <- sample(1:nrow(data),391,F)
+f <- apply(data[train[1:348],-1],2,function(x) fisher.test(x,data$class[train[1:348]])$estimate)
+f <- f[order(f,decreasing = T)]
+data <- data[names(data) %in% c("class",names(f)[1:3])]
+data$x <- apply(data[,-1],1,function(x) paste(x,collapse = ""))
+data$y <- data$class
+data <- data %>% dplyr::select(x,y)
+xtrain <- data$x[train[1:348]]
+ytrain <- data$y[train[1:348]]
+xval <- data$x[train[349:391]]
+yval <- data$y[train[349:391]]
+xtest <- data$x[!(c(1:nrow(data)) %in% train)]
+ytest <- data$y[!(c(1:nrow(data)) %in% train)]
+u <- ucurve(xtrain,ytrain,xval,yval)
+e <- min(unlist(lapply(u$hypotheses,function(x) minError(h = x,xtest = xtest,ytest = ytest))))
+visited[i] <- u$visited
+nsolutions[i] <- length(unique(u$hypotheses))
+teste_error[i] <- e
+fail[i] <- u$fail
+}
+visited <- as.numeric(unlist(lapply(strsplit(visited," "),function(x) x[1])))
+tab <- data.frame("visited" = paste(round(100*median(visited)/numbers::bell(8),2),"% (",
+round(100*quantile(visited,0.025)/numbers::bell(8),2),",",
+round(100*quantile(visited,0.975)/numbers::bell(8),2),")",sep = ""),
+"number solutions" = paste(median(nsolutions)," (",
+quantile(nsolutions,0.025),",",
+quantile(nsolutions,0.975),")",sep = ""),
+"test error" = paste(round(median(teste_error),5)," (",
+round(quantile(teste_error,0.025),5),",",
+round(quantile(teste_error,0.975),5),")",sep = ""),
+"fail" = round(100*mean(fail),2))
+write.table(tab,"t1.txt")
+library(partitionUcurve)
+#####Example 1 of Voting#####
+library(tidyverse)
+library(plyr)
+library(partitionUcurve)
+minError <- function(h,xtest,ytest){
+yobs <- vector()
+for(i in 1:length(xtest)){
+if(length(as.character(h$fx)[h$X == xtest[i]]) > 0){
+yobs[i] <- as.character(h$fx)[h$X == xtest[i]]
+}
+else{
+yobs[i] <- unique(yobs)[unique(yobs) != ytest[i]]
+}
+}
+e <- sum(yobs != ytest)/length(ytest)
+return(e)
+}
+set.seed(1)
+visited <- vector()
+nsolutions <- vector()
+teste_error <- vector()
+fail <- vector()
+for(i in 1:100){
+data <- read.table("https://archive.ics.uci.edu/ml/machine-learning-databases/voting-records/house-votes-84.data",
+sep = ",")
+names(data) <- c("class","handicapped-infants","water-project-cost-sharing","adoption-of-the-budget-resolution",
+"physician-fee-freeze","el-salvador-aid","religious-groups-in-schools:","anti-satellite-test-ban",
+"aid-to-nicaraguan-contras","mx-missile","immigration","synfuels-corporation-cutback","education-spending",
+"superfund-right-to-sue","crime","duty-free-exports","export-administration-act-south-africa")
+for(j in 1:ncol(data)){
+data[data[,j] == "?",j] <- "n"
+data[,j] <- factor(data[,j])
+}
+cat(i)
+cat("\n")
+train <- sample(1:nrow(data),391,F)
+f <- apply(data[train[1:348],-1],2,function(x) fisher.test(x,data$class[train[1:348]])$estimate)
+f <- f[order(f,decreasing = T)]
+data <- data[names(data) %in% c("class",names(f)[1:3])]
+data$x <- apply(data[,-1],1,function(x) paste(x,collapse = ""))
+data$y <- data$class
+data <- data %>% dplyr::select(x,y)
+xtrain <- data$x[train[1:348]]
+ytrain <- data$y[train[1:348]]
+xval <- data$x[train[349:391]]
+yval <- data$y[train[349:391]]
+xtest <- data$x[!(c(1:nrow(data)) %in% train)]
+ytest <- data$y[!(c(1:nrow(data)) %in% train)]
+u <- ucurve(xtrain,ytrain,xval,yval,stop = 0.5)
+e <- min(unlist(lapply(u$hypotheses,function(x) minError(h = x,xtest = xtest,ytest = ytest))))
+visited[i] <- u$visited
+nsolutions[i] <- length(unique(u$hypotheses))
+teste_error[i] <- e
+fail[i] <- u$fail
+}
+visited <- as.numeric(unlist(lapply(strsplit(visited," "),function(x) x[1])))
+tab <- data.frame("visited" = paste(round(100*median(visited)/numbers::bell(8),2),"% (",
+round(100*quantile(visited,0.025)/numbers::bell(8),2),",",
+round(100*quantile(visited,0.975)/numbers::bell(8),2),")",sep = ""),
+"number solutions" = paste(median(nsolutions)," (",
+quantile(nsolutions,0.025),",",
+quantile(nsolutions,0.975),")",sep = ""),
+"test error" = paste(round(median(teste_error),5)," (",
+round(quantile(teste_error,0.025),5),",",
+round(quantile(teste_error,0.975),5),")",sep = ""),
+"fail" = round(100*mean(fail),2))
+write.table(tab,"t1.txt")
+numbers::bell(8)
+numbers::bell(16)
+install.packages("partition")
+library(partitions)
+library(partition)
+setparts()
+install.packages("partitions")
+library(partitions)
+install.packages("gmp")
+install.packages("partitions")
+partitions::setparts()
+partitions::setparts(x = 8)
+a <- partitions::setparts(x = 8)
+View(a)
+a <- matrix(partitions::setparts(x = 8))
+View(a)
+a <- as.matrix(partitions::setparts(x = 8))
+numbers::bell(8)
+View(a)
+max(a)
+a <- as.matrix(partitions::setparts(x = 9))
+a <- as.matrix(partitions::setparts(x = 10))
+a <- as.matrix(partitions::setparts(x = 11))
+a <- as.matrix(partitions::setparts(x = 12))
+a <- as.matrix(partitions::setparts(x = 13))

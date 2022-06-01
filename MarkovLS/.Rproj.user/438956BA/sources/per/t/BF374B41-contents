@@ -1,0 +1,333 @@
+#####Aplicação: Markov Chain Bitcoin####
+
+#library(crypto2)
+#library(priceR)
+#library(tidyquant)
+library(tidyverse)
+library(ggplot2)
+library(lubridate)
+library(MarkovLS)
+library(xtable)
+library(RColorBrewer)
+library(ggpubr)
+
+titles <- theme(strip.text = element_text(size = 12), axis.text = element_text(size = 12,
+                                                                               color = "black"), axis.title = element_text(size = 14), legend.text = element_text(size = 14),
+                legend.title = element_text(size = 14), panel.grid.major = element_blank(),
+                panel.grid.minor = element_blank(), panel.border = element_blank(),
+                panel.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+                legend.background = element_rect(fill="white",size=0.5, linetype="solid",color = "black"),
+                legend.position="bottom",legend.spacing.x = unit(0.5, 'cm'))
+
+#wd
+setwd("~/GDrive/Doutorado/Códigos/Aplicação Markov Chain/Resultados finais servidor")
+#
+# #Data Bitcoin
+# btc <- crypto_history(limit = 1)
+# btc <- btc %>% select(time_open,open,close)
+# btc$time_open <- ymd(btc$time_open)
+# btc$variation <- btc$close/btc$open - 1
+# btc$y <- as.character(cut(x = btc$variation,breaks = c(-Inf,0,Inf),labels = c("0","1")))
+# btc$sample <- ifelse(btc$time_open < ymd("2021-01-01"),"Train","Validation")
+# btc$sample <- ifelse(btc$time_open >= ymd("2021-02-01"),"Test",btc$sample)
+# btc$sample <- factor(btc$sample)
+# btc$x <- NA
+# for(i in 2:nrow(btc))
+#   btc$x[i] <- paste(btc$y[(i-1):1],collapse = "")
+# names(btc)[1] <- "date"
+# btc <- na.omit(btc)
+# summary(btc)
+# write.csv(x = btc,file = "data_bitcoin.csv")
+# write_rds(btc,"data_bitcoin.rds")
+#
+# #Data Ethereum
+# eth <- crypto_history(crypto_list()["ETH" == crypto_list()$symbol,])
+# eth <- eth %>% select(time_open,open,close)
+# eth$time_open <- ymd(eth$time_open)
+# eth$variation <- eth$close/eth$open - 1
+# eth$y <- as.character(cut(x = eth$variation,breaks = c(-Inf,0,Inf),labels = c("0","1")))
+# eth$sample <- ifelse(eth$time_open < ymd("2021-01-01"),"Train","Validation")
+# eth$sample <- ifelse(eth$time_open >= ymd("2021-02-01"),"Test",eth$sample)
+# eth$sample <- factor(eth$sample)
+# eth$x <- NA
+# for(i in 2:nrow(eth))
+#   eth$x[i] <- paste(eth$y[(i-1):1],collapse = "")
+# names(eth)[1] <- "date"
+# eth <- na.omit(eth)
+# summary(eth)
+# write.csv(x = eth,file = "data_ethereum.csv")
+# write_rds(eth,"data_ethereum.rds")
+
+# #Data Dollar in BRL
+# dolar <- historical_exchange_rates("USD","BRL","2013-04-28","2022-04-05")
+# names(dolar) <- c("date","valor")
+# dolar$variation <- NA
+# for(i in 2:nrow(dolar))
+#   dolar$variation[i] <- dolar$valor[i]/dolar$valor[i-1] - 1
+# dolar <- dolar %>% filter(!(weekdays(date) %in% c("sábado","domingo")))
+# dolar$y <- as.character(cut(x = dolar$variation,breaks = c(-Inf,0,Inf),labels = c("0","1")))
+# dolar$sample <- ifelse(dolar$date < ymd("2021-01-01"),"Train","Validation")
+# dolar$sample <- ifelse(dolar$date >= ymd("2021-02-01"),"Test",dolar$sample)
+# dolar$sample <- factor(dolar$sample)
+# dolar$x <- NA
+# for(i in 2:nrow(dolar))
+#   dolar$x[i] <- paste(dolar$y[(i-1):1],collapse = "")
+# dolar <- na.omit(dolar)
+# summary(dolar)
+# write.csv(x = dolar,file = "data_dolar.csv")
+# write_rds(dolar,"data_dolar.rds")
+#
+# #Data SP500
+# sp500 <- tq_get("IBOV", from = "2013-04-26")
+# sp500$last <- NA
+# for(i in 2:nrow(sp500))
+#   sp500$last[i] <- sp500$close[i-1]
+# sp500$variation <- NA
+# for(i in 2:nrow(sp500))
+#   sp500$variation[i] <- sp500$close[i]/sp500$last[i] - 1
+# sp500$y <- as.character(cut(x = sp500$variation,breaks = c(-Inf,0,Inf),labels = c("0","1")))
+# sp500$sample <- ifelse(sp500$date < ymd("2021-01-01"),"Train","Validation")
+# sp500$sample <- ifelse(sp500$date >= ymd("2021-02-01"),"Test",sp500$sample)
+# sp500$sample <- factor(sp500$sample)
+# sp500$x <- NA
+# sp500 <- sp500[-1,]
+# for(i in 2:nrow(sp500))
+#   sp500$x[i] <- paste(sp500$y[(i-1):1],collapse = "")
+# sp500 <- na.omit(sp500)
+# summary(sp500)
+# write.csv(x = sp500,file = "data_sp500.csv")
+# write_rds(sp500,"data_sp500.rds")
+
+set.seed(10)
+#####Bitcoin Example####
+dados <- readRDS("data_bitcoin.rds")
+summary(dados)
+
+train <- dados %>% filter(sample == "Train")
+val <- dados %>% filter(sample == "Validation")
+test <- dados %>% filter(sample == "Test")
+
+mod_bit8 <- search_LS(train = train,val = val,k = 30,max_leaves = 8,max_init = 3,verbose = T)
+l <- list("bit8" = mod_bit8)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit16 <- search_LS(train = train,val = val,k = 30,max_leaves = 16,max_init = 4,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit32 <- search_LS(train = train,val = val,k = 30,max_leaves = 32,max_init = 5,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit64 <- search_LS(train = train,val = val,k = 30,max_leaves = 64,max_init = 6,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32,"bit_64" = mod_bit64)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit128 <- search_LS(train = train,val = val,k = 30,max_leaves = 128,max_init = 7,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32,"bit_64" = mod_bit64,"bit_128" = mod_bit128)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit256 <- search_LS(train = train,val = val,k = 30,max_leaves = 256,max_init = 8,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32,"bit_64" = mod_bit64,"bit_128" = mod_bit128,
+          "bit_256" = mod_bit256)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit512 <- search_LS(train = train,val = val,k = 30,max_leaves = 512,max_init = 9,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32,"bit_64" = mod_bit64,"bit_128" = mod_bit128,
+          "bit_256" = mod_bit256,"bit_512" = mod_bit512)
+write_rds(l,"results_bitcoin.rds")
+
+mod_bit1024 <- search_LS(train = train,val = val,k = 30,max_leaves = 1024,max_init = 10,verbose = T)
+l <- list("bit8" = mod_bit8,"bit_16" = mod_bit16,"bit_32" = mod_bit32,"bit_64" = mod_bit64,"bit_128" = mod_bit128,
+          "bit_256" = mod_bit256,"bit_512" = mod_bit512,"bit_1024" = mod_bit1024)
+write_rds(l,"results_bitcoin.rds")
+
+# mod_bit8 <- l$bit8
+#  mod_bit16 <- l$bit_16
+#  mod_bit32 <- l$bit_32
+#  mod_bit64 <- l$bit_64
+#  mod_bit128 <- l$bit_64
+#  mod_bit256 <- l$bit_64
+#  mod_bit512 <- l$bit_64
+#  mod_bit1024 <- l$bit_64
+
+#####Saida####
+dados <- readRDS("data_bitcoin_final.rds")
+train <- dados %>% filter(sample == "Train")
+val <- dados %>% filter(sample == "Validation")
+test <- dados %>% filter(sample == "Test")
+
+l <- readRDS("results_bitcoin_final.rds")
+mod_bit8 <- l$bit8
+mod_bit16 <- l$bit_16
+mod_bit32 <- l$bit_32
+mod_bit64 <- l$bit_64
+mod_bit128 <- l$bit_128
+mod_bit256 <- l$bit_256
+mod_bit512 <- l$bit_512
+
+xtable(mod_bit8$hhat)
+
+#Predict
+pred <- list(mod_bit8$predict,mod_bit16$predict,mod_bit32$predict,mod_bit64$predict,mod_bit128$predict,
+             mod_bit256$predict,mod_bit512$predict)
+names <- c("LS8","LS16","LS32","LS64","LS128","LS256","LS512")
+compare_bit <- error_models(sample = test,predict = pred,names = names,simulate = T,init_value = 1000)
+tab <- data.frame("Model" = c("LS8","LS16","LS32","LS64","LS128","LS256","LS512"),
+                "Time" = as.numeric(c(mod_bit8$time,mod_bit16$time,mod_bit32$time,mod_bit64$time,
+                             mod_bit128$time,mod_bit256$time,mod_bit512$time))/60,
+                  "Order" = c(max(nchar(mod_bit8$hhat$x)),max(nchar(mod_bit16$hhat$x)),max(nchar(mod_bit32$hhat$x)),max(nchar(mod_bit64$hhat$x)),
+                               max(nchar(mod_bit128$hhat$x)),max(nchar(mod_bit256$hhat$x)),max(nchar(mod_bit512$hhat$x))),
+                  "VCd" = c(nrow(mod_bit8$hhat),nrow(mod_bit16$hhat),nrow(mod_bit32$hhat),nrow(mod_bit64$hhat),
+                               nrow(mod_bit128$hhat),nrow(mod_bit256$hhat),nrow(mod_bit512$hhat)),
+                  "ValError" = c(mod_bit8$error,mod_bit16$error,mod_bit32$error,mod_bit64$error,
+                                 mod_bit128$error,mod_bit256$error,mod_bit512$error),
+                  "TestError" = compare_bit$result$Error,
+                  "MinSpread" = c(min(compare_bit$sample$sim_LS8/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS16/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS32/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS64/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS128/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS256/compare_bit$sample$sim_Observed)-1,
+                                  min(compare_bit$sample$sim_LS512/compare_bit$sample$sim_Observed)-1),
+                  "MaxSpread" = c(max(compare_bit$sample$sim_LS8/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS16/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS32/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS64/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS128/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS256/compare_bit$sample$sim_Observed)-1,
+                                  max(compare_bit$sample$sim_LS512/compare_bit$sample$sim_Observed)-1),
+                  "FinalSpread" = c((compare_bit$sample$sim_LS8/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS16/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS32/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS64/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS128/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS256/compare_bit$sample$sim_Observed)[nrow(test)]-1,
+                                    (compare_bit$sample$sim_LS512/compare_bit$sample$sim_Observed)[nrow(test)]-1),
+                  "TrainSize" = nrow(train %>% filter(nchar(x) >= 30)),
+                  "ValSize" = nrow(val),
+                  "TestSize" = nrow(test))
+write.csv(x = tab,file = "bitcoin_results_final.csv")
+write_rds(tab,"tab_results_bitcoin_final.rds")
+xtable(tab,digits = 3)
+tapply(dados$date,dados$sample,summary)
+
+#Plot
+plot <- compare_bit$data_plot
+tmp <- plot %>% filter(Model == "Observed") %>% select(date,value)
+names(tmp)[2] <- "observed"
+plot <- merge(plot %>% filter(Model != "Observed"),tmp,by = "date")
+plot$Model <- factor(plot$Model)
+plot$Model <- plyr::mapvalues(plot$Model,levels(plot$Model),paste("d =",c(8,16,32,64,128,256,512)))
+dados$sample <- plyr::mapvalues(dados$sample,"Train","Training")
+
+p0 <- ggplot(dados,aes(x = date,y = close,color = sample,group = 1)) + theme_linedraw() + titles + geom_line() +
+  scale_y_log10(breaks = (2^(0:10))*100,labels = scales::comma) + xlab("Date") +
+  ylab("Bitcoin value at end of day in US Dollars") +
+  scale_colour_manual("Sample",values = c("dodgerblue2","chocolate1","red"),breaks = c("Training","Validation","Test")) +
+  scale_x_date(breaks =ymd("2013-07-01","2014-07-01","2015-07-01","2016-07-01","2017-07-01","2018-07-01","2019-07-01","2020-07-01",
+                           "2021-07-01","2022-04-06"),labels = c(paste("Jul-",2013:2021,sep = ""),"Apr-22"))
+
+p1 <- ggplot(plot %>% filter(Model != "d = 512"),aes(x = date,y = value,group = Model)) + theme_linedraw() + titles +
+  geom_line(aes(x = date,y = observed,group = 1),color = "red") +
+  geom_line(color = "chartreuse3") + facet_wrap(~Model,nrow = 2) +
+  geom_hline(yintercept = 1000,linetype = "dashed") + xlab("") + ylab("Account balance") +
+  scale_y_continuous(breaks = seq(1000,10000,500),labels = scales::comma) +
+  scale_x_date(breaks = ymd(c("2021-02-01","2021-06-01","2021-11-01","2022-03-01")),
+               labels = c("Feb-2021","Jun-2021","Nov-2021","Mar-2022"))
+
+p2 <- ggplot(plot %>% filter(Model == "d = 512"),aes(x = date,y = value,group = Model)) + theme_linedraw() + titles +
+  geom_line(aes(x = date,y = observed,group = 1,color = "Stay on the market")) +
+  geom_line(aes(color = "Predicted strategy")) + facet_wrap(~Model) +
+  geom_hline(yintercept = 1000,linetype = "dashed") +xlab("Date") + scale_color_manual("",breaks = c("Stay on the market",
+                                                                                                     "Predicted strategy"),
+                                                                                       values = c("red","chartreuse3")) +
+  ylab("") +
+  scale_y_continuous(breaks = seq(1000,10000,500),labels = scales::comma) +
+  scale_x_date(breaks = ymd(c("2021-02-01","2021-06-01","2021-11-01","2022-03-01")),
+               labels = c("Feb-2021","Jun-2021","Nov-2021","Mar-2022"))
+pdf(file = "example_bitcoin.pdf",width = 15,height = 15)
+ggarrange(ggarrange(p0,labels = "(A)"),ggarrange(p1,labels = "(B)"),ggarrange(ggplot() + theme_void(),p2,ggplot() + theme_void(),nrow = 1),
+          nrow=3,heights = c(7.5,7.5,7.5/2))
+dev.off()
+
+ERM_markov(train = train,k = 1)
+ERM_markov(train = train,k = 2)
+ERM_markov(train = train,k = 3)
+m <- ERM_markov(train = train,k = 4)
+error_models(sample = test,predict = list(m$predict),names = "k4")
+#Where it is missing
+  # data <- compare_bit$sample
+  # data$pat_LS8 <- factor(paste("Pred =",data$LS8))#,"Obs =",data$y))
+  # data$pat_LS16 <- factor(paste("Pred =",data$LS16))#,"Obs =",data$y))
+  # data$pat_LS32 <- factor(paste("Pred =",data$LS32))#,"Obs =",data$y))
+  # data$pat_LS64 <- factor(paste("Pred =",data$LS64))#,"Obs =",data$y))
+  # data$pat_LS128 <- factor(paste("Pred =",data$LS128))#,"Obs =",data$y))
+  # data$pat_LS256 <- factor(paste("Pred =",data$LS256))#,"Obs =",data$y))
+  # data$pat_LS512 <- factor(paste("Pred =",data$LS512))#,"Obs =",data$y))
+  #
+  # tmp <- data %>% select(pat_LS8,pat_LS16,pat_LS32,pat_LS64,pat_LS128,pat_LS256,pat_LS512,variation) %>% gather("Model","Pat",-variation)
+  # tmp$Model <- factor(tmp$Model,c("pat_LS8","pat_LS16","pat_LS32","pat_LS64","pat_LS128","pat_LS256","pat_LS512"))
+  # tmp$Model <- plyr::mapvalues(tmp$Model,levels(tmp$Model),paste("d =",c(8,16,32,64,128,256,512)))
+  # #tmp$Pat <- factor(tmp$Pat,c("Pred = 0 Obs = 0","Pred = 1 Obs = 1","Pred = 0 Obs = 1","Pred = 1 Obs = 0"))
+  #
+  # ggplot(tmp,aes(color = Pat,y = variation,x = Model)) + theme_linedraw() + titles + geom_boxplot() +
+  #   stat_compare_means(method = "t.test") +
+  #   stat_summary(fun = mean,geom = "point")
+
+#####Ethereum Example####
+# dados <- readRDS("data_ethereum.rds")
+# summary(dados)
+#
+# train <- dados %>% filter(sample == "Train")
+# val <- dados %>% filter(sample == "Validation")
+# test <- dados %>% filter(sample == "Test")
+#
+# mod_eth8 <- search_LS(train = train,val = val,k = 30,max_leaves = 8,max_init = 8,verbose = T)
+# mod_eth16 <- search_LS(train = train,val = val,k = 30,max_leaves = 16,max_init = 8,verbose = T)
+# mod_eth32 <- search_LS(train = train,val = val,k = 30,max_leaves = 32,max_init = 8,verbose = T)
+# mod_eth64 <- search_LS(train = train,val = val,k = 30,max_leaves = 64,max_init = 8,verbose = T)
+# pred <- list(mod_eth8$predict,mod_eth16$predict,mod_eth32$predict,mod_eth64$predict)
+# names <- c("LS8","LS16","LS32","LS64")
+# compare_eth <- error_models(sample = test,predict = pred,names = names,simulate = T,init_value = 1000)
+# compare_eth$result
+# compare_eth$plot
+# spread_eth <- compare_eth$sample$sim_LearningSpace/compare_eth$sample$sim_Observed
+
+#####Dollar Example####
+# dados <- readRDS("data_dolar.rds")
+# summary(dados)
+#
+# train <- dados %>% filter(sample == "Train")
+# val <- dados %>% filter(sample == "Validation")
+# test <- dados %>% filter(sample == "Test")
+#
+# mod_dollar <- search_LS(train = train,val = val,k = 30,max_leaves = 64,max_init = 5,verbose = T)
+# mod1 <- ERM_markov(train = train,k = 1)
+# mod2 <- ERM_markov(train = train %>% filter(nchar(x) >= 2),k = 2)
+# mod3 <- ERM_markov(train = train %>% filter(nchar(x) >= 3),k = 3)
+# pred <- list(mod_dollar$predict)#,mod1$predict,mod2$predict)
+# names <- c("LearningSpace")#,"Markov1","m3")
+# compare_dollar <- error_models(sample = test,predict = pred,names = names,simulate = T,init_value = 1000)
+# compare_dollar$result
+# compare_dollar$plot
+# spread_dollar <- compare_dollar$sample$sim_LearningSpace/compare_dollar$sample$sim_Observed
+# View(compare$sample)
+#
+# #####SP500 Example####
+# dados <- readRDS("data_sp500.rds")
+# summary(dados)
+#
+# train <- dados %>% filter(sample == "Train")
+# val <- dados %>% filter(sample == "Validation")
+# test <- dados %>% filter(sample == "Test")
+#
+# mod_sp500 <- search_LS(train = train,val = val,k = 30,max_leaves = 64,max_init = 5,verbose = T)
+# mod1 <- ERM_markov(train = train,k = 1)
+# mod2 <- ERM_markov(train = train  %>% filter(nchar(x) >= 2),k = 2)
+# mod3 <- ERM_markov(train = train  %>% filter(nchar(x) >= 3),k = 3)
+# pred <- list(mod_sp500$predict)#,mod3$predict,mod3$predict)
+# names <- c("LearningSpace")#,"Markov1","Markov3")
+# compare_sp500 <- error_models(sample = test,predict = pred,names = names,simulate = T,init_value = 1000)
+# compare_sp500$result
+# compare_sp500$plot

@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1635192804313.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "760650504",
+    "id" : "5A2DA8BD",
+    "lastKnownWriteTime" : 1649973666,
+    "last_content_update" : 1649973666,
+    "path" : "~/GDrive/Doutorado/Códigos/partitionUcurve/R/ucurve.R",
+    "project_path" : "R/ucurve.R",
+    "properties" : {
+        "cursorPosition" : "414,17",
+        "scrollLine" : "407",
+        "tempName" : "Untitled1"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
