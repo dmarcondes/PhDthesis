@@ -4,19 +4,27 @@
 #'
 #' @description Performs an stochastic search on the Markov Boolean Learning Space.
 #'
-#' @details
+#' @details Performs the suboptimal algorithm discussed in the reference.
 #'
-#' @param train A data frame with the training data. Should have collumns named x and y representing the input and output strings.
-#' @param val A data frame with the validation data. Should have collumns named x and y representing the input and output strings.
+#' @param train A data frame with the training data. Should have columns named x and y representing the input and output strings.
+#' @param val A data frame with the validation data. Should have columns named x and y representing the input and output strings.
 #' @param k Maximum length of Markov Chain.
 #' @param max_leaves Maximum number of leaves in a node.
 #' @param max_init Maximum length of initial node to try.
 #' @param verbose Logical. Whether to print algorithm progress.
 #' @param error Wheter to consider the simple error or the weighted error
 #'
-#' @return A list containing the validation error of the estimated node, a table with the estimated hypothesis, a function to predict the output of a given input and the algorithm time.
+#' @return A list containing the validation error of the estimated node, a table with the estimated hypothesis, a function to predict the output of a given input and the algorithm processing time.
+#'
+#' @examples
+#' mod <- search_LS(train = bitcoin[bitcoin$sample == "Train",],
+#' val = bitcoin[bitcoin$sample == "Validation",],
+#' k = 30,max_leaves = 8,max_init = log(8,2),verbose = FALSE)
+#'
+#' @references Diego Marcondes. A data-driven systematic, consistent and feasible approach to Model Selection. \emph{PhD thesis}. Universidade de São Paulo, 2022
 
 search_LS <- function(train,val,k,max_leaves = 50,max_init,verbose = T,error = "simple"){
+  library(tidyverse)
   start_time <- Sys.time()
 
   #Lost sample

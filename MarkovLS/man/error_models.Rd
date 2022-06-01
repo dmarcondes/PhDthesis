@@ -7,18 +7,43 @@
 error_models(sample, predict, names, simulate = F, init_value = 1000)
 }
 \arguments{
-\item{sample}{A data frame with the sample data. Should have collumns named x and y representing the input and output strings, and collumns variation and date containing the daily variation anda date for simulation.}
+\item{sample}{A data frame with the sample data. Should have columns named x and y representing the input and output strings, and columns variation and date containing the daily variation and date for simulation.}
 
 \item{predict}{A list of functions which, given an input string, returns a predicted output.}
 
-\item{names}{A vector containing the names of the models which generated th predict functions.}
+\item{names}{A vector containing the names of the models which generated the predict functions.}
+
+\item{simulate}{Logical. Wheter to simulate the data and plot it.}
+
+\item{init_value}{Initial value of the account for simulation.}
 }
 \value{
-A list containing the sample data frame with new collumns for prdiction and simulation, the error of each model, a plot with the simularion and the data used in the plot.
+A list containing the sample data frame with new columns for prediction and simulation, the error of each model, a plot with the simularion and the data used in the plot.
 }
 \description{
 Predict the output for each observation in a sample and calculate the error for multiple models.
 }
 \details{
+Given a list of functions from models estimated via search_LS function, compare them by calculating errors and ploting the results.
+}
+\examples{
+mod1 <- search_LS(train = bitcoin[bitcoin$sample == "Train",],
+val = bitcoin[bitcoin$sample == "Validation",],
+k = 30,max_leaves = 8,max_init = log(8,2),verbose = FALSE)
 
+mod2 <- search_LS(train = bitcoin[bitcoin$sample == "Train",],
+val = bitcoin[bitcoin$sample == "Validation",],
+k = 30,max_leaves = 16,max_init = log(16,2),verbose = FALSE)
+
+mod3 <- search_LS(train = bitcoin[bitcoin$sample == "Train",],
+val = bitcoin[bitcoin$sample == "Validation",],
+k = 30,max_leaves = 32,max_init = log(32,2),verbose = FALSE)
+
+e <- error_models(sample = bitcoin[bitcoin$sample == "Test",],
+predict = list(mod1$predict,mod2$predict,mod3$predict),names = c("d8","d16","d32"),
+simulate = TRUE)
+
+}
+\references{
+Diego Marcondes. A data-driven systematic, consistent and feasible approach to Model Selection. \emph{PhD thesis}. Universidade de São Paulo, 2022
 }

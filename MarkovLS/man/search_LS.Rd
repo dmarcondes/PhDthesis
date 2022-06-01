@@ -15,9 +15,9 @@ search_LS(
 )
 }
 \arguments{
-\item{train}{A data frame with the training data. Should have collumns named x and y representing the input and output strings.}
+\item{train}{A data frame with the training data. Should have columns named x and y representing the input and output strings.}
 
-\item{val}{A data frame with the validation data. Should have collumns named x and y representing the input and output strings.}
+\item{val}{A data frame with the validation data. Should have columns named x and y representing the input and output strings.}
 
 \item{k}{Maximum length of Markov Chain.}
 
@@ -30,11 +30,20 @@ search_LS(
 \item{error}{Wheter to consider the simple error or the weighted error}
 }
 \value{
-A list containing the validation error of the estimated node, a table with the estimated hypothesis, a function to predict the output of a given input and the algorithm time.
+A list containing the validation error of the estimated node, a table with the estimated hypothesis, a function to predict the output of a given input and the algorithm processing time.
 }
 \description{
 Performs an stochastic search on the Markov Boolean Learning Space.
 }
 \details{
+Performs the suboptimal algorithm discussed in the reference.
+}
+\examples{
+mod <- search_LS(train = bitcoin[bitcoin$sample == "Train",],
+val = bitcoin[bitcoin$sample == "Validation",],
+k = 30,max_leaves = 8,max_init = log(8,2),verbose = FALSE)
 
+}
+\references{
+Diego Marcondes. A data-driven systematic, consistent and feasible approach to Model Selection. \emph{PhD thesis}. Universidade de São Paulo, 2022
 }

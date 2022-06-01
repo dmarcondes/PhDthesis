@@ -7,7 +7,7 @@
 ERM_markov(train, k)
 }
 \arguments{
-\item{train}{A data frame with the training data. Should have collumns named x and y representing the input and output strings.}
+\item{train}{A data frame with the training data. Should have columns named x and y representing the input and output strings.}
 
 \item{k}{Length of Markov Chain.}
 }
@@ -15,8 +15,15 @@ ERM_markov(train, k)
 A list containing the table with the estimated hypothesis and a function to predict the output of a given input.
 }
 \description{
-Estimate the hypothesis that minimizes the empirical error under the Markov model of length k.
+Estimate the hypothesis that minimizes the empirical classification error under the Markov model of length k.
 }
 \details{
+Receives the sequence values y and its past x, and returns the predictor of length k that minimizes the classification error in the sample x,y.
+}
+\examples{
+ERM_markov(bitcoin,2)
 
+}
+\references{
+Diego Marcondes. A data-driven systematic, consistent and feasible approach to Model Selection. \emph{PhD thesis}. Universidade de São Paulo, 2022
 }
