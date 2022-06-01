@@ -15,6 +15,6 @@ Illustration of how learning via Learning Spaces may be applied to forecast a bi
 
 ## 4.3 Multilayer W-operator
 
-This application aimed to learn a classifier for digit zero in the MNIST data set via multilayer W-operators. The algorithm was implemented in **C**. This folder of this application contains the **C** code, the **R** code which analysed the results, a folder with each image in the MNIST data set in a txt file, a folder with window W and operator (joint) at each step of the algorithm, and files with the prediction of the learned model on the validation and test samples.
+This application aimed to learn a classifier for digit zero in the MNIST data set via multilayer W-operators. The algorithm was implemented in **C**. This folder of this application contains the **C** code, the **R** code which analysed the results, a folder with each image in the MNIST data set in a txt file, a folder with windows W and operators (joint) at each step of the algorithm, and files with the learned windows W and operators (joint) and the prediction of the learned model on the validation and test samples.
 
 
