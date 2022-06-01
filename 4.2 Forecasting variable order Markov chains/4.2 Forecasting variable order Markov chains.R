@@ -6,8 +6,8 @@
 ######################################################################################
 
 #Install MarkovLS package
-#library(devtools)
-#install_github() #PREENCHER
+library(devtools)
+install_github("dmarcondes/PhDthesis/MarkovLS")
 
 #Packages
 library(tidyverse)

@@ -6,8 +6,8 @@
 ######################################################################################
 
 #Install U-curve package
-#library(devtools)
-#install_github() #PREENCHER
+library(devtools)
+install_github("dmarcondes/PhDthesis/partitionUcurve")
 
 #Libraries
 library(partitionUcurve)
