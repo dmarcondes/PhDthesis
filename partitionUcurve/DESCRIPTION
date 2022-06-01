@@ -4,7 +4,7 @@ Title: U-curve Algorithm for Model Selection on the Partition Lattice Learning S
 Version: 0.1
 Author: Diego Marcondes
 Maintainer: Diego Marcondes <dmarcondes@ime.usp.br>
-Description: U-curve Algorithm for Model Selection on the Partition Lattice Learning Space
+Description: U-curve Algorithm for Model Selection on the Partition Lattice Learning Space.
 Imports:
    plyr (>= 1.8.6),
    fst,
@@ -16,9 +16,11 @@ Imports:
    data.table
 Depends:
   R (>= 3.5.0)
-License: GPL (>= 2)
-URL: https://github.com/dmarcondes/partitionUcurve
-BugReports: https://github.com/dmarcondes/partitionUcurve/issues
+License: GPL (>= 3)
+URL: https://github.com/dmarcondes/PhDthesis
+BugReports: https://github.com/dmarcondes/PhDthesis/issues
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.1.1
+References: Diego Marcondes. A data-driven systematic, consistent and feasible approach to Model Selection. PhD thesis. Universidade de São Paulo, 2022
+ 

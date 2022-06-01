@@ -2,13 +2,15 @@
 % Please edit documentation in R/ucurve.R
 \name{ucurve}
 \alias{ucurve}
-\title{U-curve algorith on the Partition Lattice Learning Space}
+\title{U-curve algorithm on the Partition Lattice Learning Space}
 \usage{
 ucurve(
   xtrain,
   ytrain,
   xval,
   yval,
+  X,
+  Y,
   optimal = T,
   exhaust = 1000,
   sampleNeigh = F,
@@ -16,7 +18,7 @@ ucurve(
   earlystop = F,
   verbose = T,
   stop = 0,
-  path = "~/GDrive/Doutorado/Códigos/Particoes/",
+  path = "~",
   Lh = NULL,
   cores = 4,
   save = F
@@ -31,11 +33,15 @@ ucurve(
 
 \item{yval}{Vector with the validation sample of y values.}
 
+\item{X}{Domain of variable x.}
+
+\item{Y}{Domain of variable y.}
+
 \item{optimal}{Logical indicating if the algorithm should return an optimal solution.}
 
-\item{exhaust}{Number of points to exhaust before stopping the algorithm.}
+\item{exhaust}{Number of points to exhaust before stopping the suboptimal algorithm.}
 
-\item{sampleNeigh}{Either false to consider all neighboors, or the maximum number of neighboors to sample at each exhaustion. If a number,then optimal should be false.}
+\item{sampleNeigh}{Either false to consider all neighboors, or the maximum number of neighboors to sample at each exhaustion. If a number, then optimal should be false.}
 
 \item{increasing}{Logical indicating if target function is increasing.}
 
@@ -62,11 +68,11 @@ ucurve(
 
 \item{exhausted}{Number of nodes exhausted during algorithm.}
 
-\item{remain}{Number of nodes remaining after algorithm stopped.}
+\item{remain}{Number of nodes remaining after optimal algorithm stopped.}
 
 \item{finished}{If the algorithm was finished or ended after not finding any Strong Local Minimum.}
 
-\item{SLMvis}{Number of nodes exhasuted until the last Strong Local Minimum was found.}
+\item{SLMvis}{Number of nodes exhausted until the last Strong Local Minimum was found.}
 
 \item{remain_after_prune}{Number of nodes remaining after finding each Strong Local Minimum.}
 
@@ -77,10 +83,10 @@ ucurve(
 \item{plot}{Plot with the error of each Strong Local Minimum.}
 }
 \description{
-TBD
+Optimal and suboptimal U-curve algorithm to perfom Model Selection on the Partition Lattice Learning Space.
 }
 \details{
-TBD
+The optimal U-curve algorithm works for at most 12 points in the domain, if the respetive fst file is available. The suboptimal algorithm in principle works for any number of points in the domain. The algorithm also performs a suboptimal search considering only increasing classifiers. More details about the algorithm may be found at the reference.
 }
 \examples{
 set.seed(1)
@@ -92,5 +98,7 @@ xtrain <- x[train]
 ytrain <- y[train]
 xval <- x[!(c(1:50) \%in\% train)]
 yval <- y[!(c(1:50) \%in\% train)]
-u <- ucurve(xtrain,ytrain,xval,yval,optimal = FALSE,sampleNeigh = 5000,exhaust = 10,cores = 1)
+u <- ucurve(xtrain,ytrain,xval,yval,
+X = c("01","02","03","04","05","06","07","08","09","10"),Y = c(0,1),
+optimal = FALSE,sampleNeigh = 5000,exhaust = 10,cores = 1)
 }

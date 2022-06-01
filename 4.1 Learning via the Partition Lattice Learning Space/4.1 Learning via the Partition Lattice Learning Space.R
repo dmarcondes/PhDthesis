@@ -351,7 +351,6 @@ print(xtable(tab[,-c(5,6)]),include.rownames = F)
 info <- data.frame("ex" = 1,results[[1]]$info)
 for(i in 2:4)
   info <- rbind.data.frame(info,data.frame("ex" = i,results[[i]]$info))
-View(info)
 
 tmp <- info %>% select(ERM.error,real.error,Optimal,n,id,ex)
 tmp <- tmp %>% group_by(Optimal,n,ex) %>% summarise("Learning via Learning Spaces better than learning via ERM" = 100*sum(real.error < ERM.error)/length(real.error),

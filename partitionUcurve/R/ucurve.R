@@ -9,11 +9,11 @@
 #' @import utils
 #' @import stats
 #' @export
-#' @title U-curve algorith on the Partition Lattice Learning Space
+#' @title U-curve algorithm on the Partition Lattice Learning Space
 #'
-#' @description TBD
+#' @description Optimal and suboptimal U-curve algorithm to perfom Model Selection on the Partition Lattice Learning Space.
 #'
-#' @details TBD
+#' @details The optimal U-curve algorithm works for at most 12 points in the domain, if the respetive fst file is available. The suboptimal algorithm in principle works for any number of points in the domain. The algorithm also performs a suboptimal search considering only increasing classifiers. More details about the algorithm may be found at the reference.
 #'
 #' @param xtrain Vector with the training sample of x values.
 #' @param ytrain Vector with the training sample of y values.
@@ -24,8 +24,8 @@
 #' @param optimal Logical indicating if the algorithm should return an optimal solution.
 #' @param increasing Logical indicating if target function is increasing.
 #' @param earlystop Logical indicating if it should be possible to early stop the algorithm.
-#' @param exhaust Number of points to exhaust before stopping the algorithm.
-#' @param sampleNeigh Either false to consider all neighboors, or the maximum number of neighboors to sample at each exhaustion. If a number,then optimal should be false.
+#' @param exhaust Number of points to exhaust before stopping the suboptimal algorithm.
+#' @param sampleNeigh Either false to consider all neighboors, or the maximum number of neighboors to sample at each exhaustion. If a number, then optimal should be false.
 #' @param verbose Logical to print a trace of the algorithm.
 #' @param stop Number of nodes yet to evaluate to trigger exhaustive search.
 #' @param path Path to preprocessed partition files.
@@ -36,9 +36,9 @@
 #' @return \item{partitions}{Partitions of the global minimums with least VC dimension.}
 #' @return \item{error}{Validation error of the global minimums.}
 #' @return \item{exhausted}{Number of nodes exhausted during algorithm.}
-#' @return \item{remain}{Number of nodes remaining after algorithm stopped.}
+#' @return \item{remain}{Number of nodes remaining after optimal algorithm stopped.}
 #' @return \item{finished}{If the algorithm was finished or ended after not finding any Strong Local Minimum.}
-#' @return \item{SLMvis}{Number of nodes exhasuted until the last Strong Local Minimum was found.}
+#' @return \item{SLMvis}{Number of nodes exhausted until the last Strong Local Minimum was found.}
 #' @return \item{remain_after_prune}{Number of nodes remaining after finding each Strong Local Minimum.}
 #' @return \item{exhausted_until_prune}{Number of nodes exhausted until finding each Strong Local Minimum.}
 #' @return \item{optimal}{Wheter an optimal solution was returned.}
@@ -53,10 +53,12 @@
 #' ytrain <- y[train]
 #' xval <- x[!(c(1:50) %in% train)]
 #' yval <- y[!(c(1:50) %in% train)]
-#' u <- ucurve(xtrain,ytrain,xval,yval,optimal = FALSE,sampleNeigh = 5000,exhaust = 10,cores = 1)
+#' u <- ucurve(xtrain,ytrain,xval,yval,
+#' X = c("01","02","03","04","05","06","07","08","09","10"),Y = c(0,1),
+#' optimal = FALSE,sampleNeigh = 5000,exhaust = 10,cores = 1)
 
 ucurve <- function(xtrain,ytrain,xval,yval,X,Y,optimal = T,exhaust = 1000,sampleNeigh = F,increasing = F,earlystop = F,
-                   verbose = T,stop = 0,path = "~/GDrive/Doutorado/Códigos/Particoes/",Lh = NULL,cores = 4,save = F){
+                   verbose = T,stop = 0,path = "~",Lh = NULL,cores = 4,save = F){
 
   #Test if parameters correct
   if(!!sampleNeigh){
@@ -99,7 +101,7 @@ ucurve <- function(xtrain,ytrain,xval,yval,X,Y,optimal = T,exhaust = 1000,sample
     cat("------------------------------------------------------------------------------\n")
     cat(paste(length(unique(X)),"points in the domain\n"))
     cat(paste(ifelse(n <= 218,format(bell(n),big.mark = ",",scientific = F),"???"),
-                            "nodes on the Partition Lattice Learning Space\n"))
+                            "nodes in the Partition Lattice Learning Space\n"))
     cat(paste("Training sample size:",length(xtrain),"\n"))
     cat(paste("Validation sample size:",length(xval),"\n"))
     cat(paste("Returning",ifelse(increasing,"increasing suboptimal",ifelse(optimal,"optimal","suboptimal")),
